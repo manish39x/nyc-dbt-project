@@ -5,7 +5,7 @@ WITH source AS (
 renamed AS (
     SELECT
     -- identifiers
-        'yellow'                                                                as taxi_type
+        'yellow'                                                                as taxi_type,
         raw_data['VendorID']::INT                                               as vendor_id,
         raw_data['RatecodeID']::INT                                             as rate_code_id,
         raw_data['PULocationID']::INT                                           as pickup_location_id,

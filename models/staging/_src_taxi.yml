@@ -4,4 +4,15 @@ sources:
     schema: raw
     tables:
       - name: yellow_taxi_trips
+        description: "Raw yellow taxi trips stored as VARIANT parquet data"
+        columns:
+          - name: VendorID
+            tests:
+              - not_null
+            
       - name: green_taxi_trips
+        description: "Raw green taxi trips stored as VARIANT parquet data"
+        columns:
+          - name: VendorID
+            tests:
+              - not_null
