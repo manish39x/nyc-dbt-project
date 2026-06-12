@@ -31,10 +31,11 @@ renamed AS (
         raw_data['Airport_fee']::FLOAT                                             as airport_fee,
         raw_data['cbd_congestion_fee']::FLOAT                                      as cbd_congestion_fee
     FROM source
-    WHERE raw_data:trip_distance::FLOAT > 0
-    AND raw_data:total_amount::FLOAT > 0
-    AND raw_data:passenger_count::INT > 0
-    AND DATE(TO_TIMESTAMP(raw_data:tpep_pickup_datetime::NUMBER / 1000000, 0)) BETWEEN DATE('2014-01-01') AND DATE('2026-03-01')
+    WHERE raw_data['trip_distance']::FLOAT > 0 AND raw_data['trip_distance'] < 200
+    AND raw_data['total_amount']::FLOAT > 0.5 AND raw_data['total_amount'] < 1000
+    AND raw_data['fare_amount']::FLOAT > 0.5 AND raw_data['fare_amount'] < 1000
+    AND raw_data['passenger_count']::INT > 0 AND raw_data['passenger_count']::INT < 9
+    AND DATE(TO_TIMESTAMP(raw_data['tpep_pickup_datetime']::NUMBER / 1000000, 0)) BETWEEN DATE('2014-01-01') AND DATE('2026-03-01')
 )
 
 SELECT * FROM renamed
