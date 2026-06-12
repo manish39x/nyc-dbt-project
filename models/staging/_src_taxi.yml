@@ -1,0 +1,7 @@
+sources:
+  - name: src_nyc_taxi
+    database: nyc_taxi
+    schema: raw
+    tables:
+      - name: yellow_taxi_trips
+      - name: green_taxi_trips
