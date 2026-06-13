@@ -67,5 +67,9 @@ Source: https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
 ## dbt Lineage
 <img width="1212" height="469" alt="Screenshot from 2026-06-13 12-08-17" src="https://github.com/user-attachments/assets/fc6602a3-589b-4565-b95f-f06f3239a0e7" />
 
+## Dashboard
+<img width="1241" height="816" alt="image" src="https://github.com/user-attachments/assets/ebe491d4-96ba-4d85-b265-653d44af1ba2" />
+
+
 
 
