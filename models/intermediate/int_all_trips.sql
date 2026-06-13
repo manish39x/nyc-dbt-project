@@ -9,8 +9,7 @@ all_trips AS (
     UNION ALL
     SELECT 
         *,
-        NULL  AS airport_fee,
-        NULL  AS cbd_congestion_fee
+        NULL  AS airport_fee
     FROM green_taxi_data
 ),
 zone_lookup AS (
@@ -71,7 +70,7 @@ enriched AS (
         DATE(t.pickup_datetime)            AS pickup_date,
         YEAR(t.pickup_datetime)            AS pickup_year,
         MONTH(t.pickup_datetime)            AS pickup_month,
-        HOUR(t.pickup_datetime)            AS pickup_HOUR,
+        HOUR(t.pickup_datetime)            AS pickup_hour,
         CASE
             WHEN DAYOFWEEK(t.pickup_datetime) IN (1, 7) THEN 'Weekend'
             ELSE 'Weekday'

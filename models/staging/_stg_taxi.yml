@@ -1,12 +1,240 @@
 models:
   - name: stg_taxi_trips__yellow
+    description: >
+      Staged yellow taxi trips parsed from raw VARIANT parquet data ingested via Snowpipe from S3.
+      Source is the NYC TLC yellow taxi trip records (TPEP provider data).
+      Filters out invalid rows including zero-distance trips, corrupt fare amounts,
+      out-of-range timestamps, and invalid passenger counts.
+      Adds taxi_type and trip_duration_minutes for downstream union with green taxi data.
     columns:
-      - name: vendor_id
+      - name: taxi_type
+        description: "Hardcoded as 'yellow'. Used to identify taxi type after UNION ALL in int_all_trips."
         tests:
           - not_null
+          - accepted_values:
+              arguments:
+                values: ['yellow']
+
+      - name: vendor_id
+        description: >
+          Code indicating the TPEP provider that provided the record.
+          1 = Creative Mobile Technologies LLC,
+          2 = Curb Mobility LLC,
+          6 = Myle Technologies Inc,
+          7 = Helix.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 6, 7]
+              config:
+                severity: warn
+
+      - name: rate_code_id
+        description: >
+          The final rate code in effect at the end of the trip.
+          1 = Standard rate, 2 = JFK, 3 = Newark,
+          4 = Nassau or Westchester, 5 = Negotiated fare,
+          6 = Group ride, 99 = Null/unknown.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 99]
+              config:
+                severity: warn
+
+      - name: pickup_location_id
+        description: "TLC Taxi Zone in which the taximeter was engaged. Joins to taxi_zone_lookup seed."
+
+      - name: dropoff_location_id
+        description: "TLC Taxi Zone in which the taximeter was disengaged. Joins to taxi_zone_lookup seed."
+
+      - name: pickup_datetime
+        description: "The date and time when the meter was engaged. Converted from Unix microseconds (tpep_pickup_datetime)."
+        tests:
+          - not_null
+
+      - name: dropoff_datetime
+        description: "The date and time when the meter was disengaged. Converted from Unix microseconds (tpep_dropoff_datetime)."
+        tests:
+          - not_null
+
+      - name: passenger_count
+        description: "The number of passengers in the vehicle. Driver-entered value. Filtered to 1-8."
+
+      - name: trip_distance
+        description: "The elapsed trip distance in miles reported by the taximeter. Filtered to 0-200 miles."
+
+      - name: store_and_fwd_flag
+        description: >
+          Indicates whether the trip record was held in vehicle memory before sending to the vendor
+          because the vehicle did not have a server connection.
+          Y = store and forward trip, N = not a store and forward trip.
+
+      - name: payment_type
+        description: >
+          Numeric code signifying how the passenger paid.
+          0 = Flex Fare trip, 1 = Credit card, 2 = Cash,
+          3 = No charge, 4 = Dispute, 5 = Unknown, 6 = Voided trip.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1, 2, 3, 4, 5, 6]
+              config:
+                severity: warn
+
+      - name: trip_duration_minutes
+        description: "Derived field. Difference in minutes between pickup_datetime and dropoff_datetime. Filtered to positive values only."
+
+      - name: fare_amount
+        description: "The time-and-distance fare calculated by the meter. Filtered to 0.50-1000."
+        tests:
+          - not_null
+
+      - name: extra
+        description: "Miscellaneous extras and surcharges."
+
+      - name: mta_tax
+        description: "Tax automatically triggered based on the metered rate in use."
+
+      - name: tip_amount
+        description: "Tip amount. Automatically populated for credit card tips. Cash tips are not included."
+
+      - name: tolls_amount
+        description: "Total amount of all tolls paid in trip."
+
+      - name: improvement_surcharge
+        description: "Improvement surcharge assessed at the flag drop. Began being levied in 2015."
+
+      - name: total_amount
+        description: "The total amount charged to passengers. Does not include cash tips. Filtered to 0.50-1000."
+        tests:
+          - not_null
+
+      - name: congestion_surcharge
+        description: "Total amount collected in trip for NYS congestion surcharge."
+
+      - name: airport_fee
+        description: "Fee for pick up only at LaGuardia and John F. Kennedy Airports. Yellow taxi only, NULL for green."
+
+      - name: cbd_congestion_fee
+        description: "Per-trip charge for MTA Congestion Relief Zone starting Jan 5 2025. Yellow taxi only, NULL for green."
+
   - name: stg_taxi_trips__green
+    description: >
+      Staged green taxi (SHL/LPEP) trips parsed from raw VARIANT parquet data ingested via Snowpipe from S3.
+      Green taxis primarily serve outer boroughs and northern Manhattan above East 96th and West 110th Streets.
+      Uses lpep_ timestamp columns instead of tpep_ used by yellow taxis.
+      airport_fee and cbd_congestion_fee are NULL as green taxis do not operate at major airports
+      and are less affected by congestion zone rules.
     columns:
-      - name: vendor_id
+      - name: taxi_type
+        description: "Hardcoded as 'green'. Used to identify taxi type after UNION ALL in int_all_trips."
         tests:
           - not_null
-      
+          - accepted_values:
+              arguments:
+                values: ['green']
+
+      - name: vendor_id
+        description: >
+          Code indicating the LPEP provider that provided the record.
+          1 = Creative Mobile Technologies LLC,
+          2 = Curb Mobility LLC,
+          6 = Myle Technologies Inc.
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1, 2, 6]
+              config:
+                severity: warn
+
+      - name: rate_code_id
+        description: >
+          The final rate code in effect at the end of the trip.
+          1 = Standard rate, 2 = JFK, 3 = Newark,
+          4 = Nassau or Westchester, 5 = Negotiated fare,
+          6 = Group ride, 99 = Null/unknown.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 99]
+              config:
+                severity: warn
+
+      - name: pickup_location_id
+        description: "TLC Taxi Zone in which the taximeter was engaged. Joins to taxi_zone_lookup seed."
+
+      - name: dropoff_location_id
+        description: "TLC Taxi Zone in which the taximeter was disengaged. Joins to taxi_zone_lookup seed."
+
+      - name: pickup_datetime
+        description: "The date and time when the meter was engaged. Converted from Unix microseconds (lpep_pickup_datetime)."
+        tests:
+          - not_null
+
+      - name: dropoff_datetime
+        description: "The date and time when the meter was disengaged. Converted from Unix microseconds (lpep_dropoff_datetime)."
+        tests:
+          - not_null
+
+      - name: passenger_count
+        description: "The number of passengers in the vehicle. Filtered to 1-8."
+
+      - name: trip_distance
+        description: "The elapsed trip distance in miles reported by the taximeter. Filtered to 0-200 miles."
+
+      - name: store_and_fwd_flag
+        description: >
+          Indicates whether the trip record was held in vehicle memory before sending to the vendor.
+          Y = store and forward trip, N = not a store and forward trip.
+
+      - name: payment_type
+        description: >
+          Numeric code signifying how the passenger paid.
+          0 = Flex Fare trip, 1 = Credit card, 2 = Cash,
+          3 = No charge, 4 = Dispute, 5 = Unknown, 6 = Voided trip.
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1, 2, 3, 4, 5, 6]
+              config:
+                severity: warn
+
+      - name: trip_duration_minutes
+        description: "Derived field. Difference in minutes between pickup_datetime and dropoff_datetime. Filtered to positive values only."
+
+      - name: fare_amount
+        description: "The time-and-distance fare calculated by the meter. Filtered to 0.50-1000."
+        tests:
+          - not_null
+
+      - name: extra
+        description: "Miscellaneous extras and surcharges."
+
+      - name: mta_tax
+        description: "Tax automatically triggered based on the metered rate in use."
+
+      - name: tip_amount
+        description: "Tip amount. Automatically populated for credit card tips. Cash tips are not included."
+
+      - name: tolls_amount
+        description: "Total amount of all tolls paid in trip."
+
+      - name: improvement_surcharge
+        description: "Improvement surcharge assessed at the flag drop. Began being levied in 2015."
+
+      - name: total_amount
+        description: "The total amount charged to passengers. Does not include cash tips. Filtered to 0.50-1000."
+        tests:
+          - not_null
+
+      - name: congestion_surcharge
+        description: "Total amount collected in trip for NYS congestion surcharge."
+
+      - name: airport_fee
+        description: "Always NULL for green taxis. Yellow taxi only field retained for UNION ALL schema compatibility."
+
+      - name: cbd_congestion_fee
+        description: "Per-trip charge for MTA Congestion Relief Zone starting Jan 5 2025. NULL for green in raw data."

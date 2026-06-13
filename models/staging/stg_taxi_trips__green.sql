@@ -18,7 +18,7 @@ renamed AS (
         raw_data['trip_distance']::FLOAT                                           as trip_distance,
         raw_data['store_and_fwd_flag']::VARCHAR                                    as store_and_fwd_flag,
         raw_data['payment_type']::INT                                              as payment_type,
-        DATEDIFF('minute', pickup_datetime, dropoff_datetime)                      as trip_duration,
+        DATEDIFF('minute', pickup_datetime, dropoff_datetime)                      as trip_duration_minutes,
     --  financials
         raw_data['fare_amount']::FLOAT                                             as fare_amount,
         raw_data['extra']::FLOAT                                                   as extra,
@@ -28,12 +28,17 @@ renamed AS (
         raw_data['improvement_surcharge']::FLOAT                                   as improvement_surcharge,
         raw_data['total_amount']::FLOAT                                            as total_amount,
         raw_data['congestion_surcharge']::FLOAT                                    as congestion_surcharge,
+        raw_data['cbd_congestion_fee']::FLOAT                                      as cbd_congestion_fee
     FROM source
     WHERE raw_data['trip_distance']::FLOAT > 0 AND raw_data['trip_distance'] < 200
     AND raw_data['total_amount']::FLOAT > 0.5 AND raw_data['total_amount'] < 1000
     AND raw_data['fare_amount']::FLOAT > 0.5 AND raw_data['fare_amount'] < 1000
     AND raw_data['passenger_count']::INT > 0 AND raw_data['passenger_count']::INT < 9
-    AND DATE(TO_TIMESTAMP(raw_data:lpep_pickup_datetime::NUMBER / 1000000, 0)) BETWEEN DATE('2014-01-01') AND DATE('2026-03-01')
+    AND raw_data['VendorID']::INT IN (1, 2, 6)
+    AND DATE(TO_TIMESTAMP(raw_data['lpep_pickup_datetime']::NUMBER / 1000000, 0)) BETWEEN DATE('2014-01-01') AND DATE('2026-03-01')
+    AND TO_TIMESTAMP(raw_data['lpep_pickup_datetime']::NUMBER / 1000000, 0) < TO_TIMESTAMP(raw_data['lpep_dropoff_datetime']::NUMBER / 1000000, 0)
+    AND DATEDIFF('minute', pickup_datetime, dropoff_datetime) > 0
+
 )
 
 SELECT * FROM renamed

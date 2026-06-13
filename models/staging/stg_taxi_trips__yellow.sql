@@ -35,7 +35,10 @@ renamed AS (
     AND raw_data['total_amount']::FLOAT > 0.5 AND raw_data['total_amount'] < 1000
     AND raw_data['fare_amount']::FLOAT > 0.5 AND raw_data['fare_amount'] < 1000
     AND raw_data['passenger_count']::INT > 0 AND raw_data['passenger_count']::INT < 9
+    AND raw_data['VendorID']::INT IN (1, 2, 6, 7)
     AND DATE(TO_TIMESTAMP(raw_data['tpep_pickup_datetime']::NUMBER / 1000000, 0)) BETWEEN DATE('2014-01-01') AND DATE('2026-03-01')
+    AND TO_TIMESTAMP(raw_data['lpep_pickup_datetime']::NUMBER / 1000000, 0) < TO_TIMESTAMP(raw_data['lpep_dropoff_datetime']::NUMBER / 1000000, 0)
+    AND DATEDIFF('minute', pickup_datetime, dropoff_datetime) > 0
 )
 
 SELECT * FROM renamed
