@@ -5,7 +5,7 @@ using Airflow, AWS S3, Snowflake, and dbt.
 
 ## Architecture
 
-[paste screenshot of the diagram above]
+will do it ltr🫤
 
 ## Stack
 
@@ -63,5 +63,9 @@ dbt tests cover:
 
 NYC TLC Trip Record Data — Yellow and Green taxi trips 2014–2026.
 Source: https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
+
+## dbt Lineage
+<img width="1212" height="469" alt="Screenshot from 2026-06-13 12-08-17" src="https://github.com/user-attachments/assets/fc6602a3-589b-4565-b95f-f06f3239a0e7" />
+
 
 
