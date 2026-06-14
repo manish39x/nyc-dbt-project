@@ -4,8 +4,8 @@ End-to-end ELT pipeline processing NYC TLC yellow and green taxi trip records
 using Airflow, AWS S3, Snowflake, and dbt.
 
 ## Architecture
+<img width="1535" height="559" alt="image" src="https://github.com/user-attachments/assets/65a734bf-0bf7-404c-b847-183f1c0fd9f9" />
 
-will do it ltr🫤
 
 ## Stack
 
