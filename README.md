@@ -59,6 +59,10 @@ dbt tests cover:
 - Custom test: no negative fare amounts across yellow and green
 - Custom test: dropoff always after pickup
 
+## Slack Reporting
+<img width="739" height="285" alt="image" src="https://github.com/user-attachments/assets/a3152034-586f-4cc0-b10f-4d3ccbcedc27" />
+
+
 ## Dataset
 
 NYC TLC Trip Record Data — Yellow and Green taxi trips 2014–2026.
