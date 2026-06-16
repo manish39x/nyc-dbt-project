@@ -23,6 +23,7 @@ using Airflow, AWS S3, Snowflake, and dbt.
 **Ingestion** — Airflow DAG downloads monthly Parquet files from the NYC TLC
 CloudFront source and uploads them to partitioned S3 paths. Snowpipe listens
 via SQS event notifications and auto-ingests new files into raw VARIANT tables.
+*Separate repo* - https://github.com/manish39x/nyc-taxi-pipeline
 
 **Staging** — dbt parses VARIANT columns into typed fields, renames columns to
 a consistent schema, and filters invalid rows (zero-distance trips, corrupt
